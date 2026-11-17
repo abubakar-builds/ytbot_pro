@@ -1,0 +1,7 @@
+Flask>=3.0,<4
+# Intentionally unpinned: YouTube changes often and old yt-dlp versions break.
+# Every redeploy pulls the latest release.
+yt-dlp
+# Bundles an ffmpeg binary so merging video+audio works without system ffmpeg.
+imageio-ffmpeg>=0.5
+gunicorn>=22
