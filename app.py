@@ -5,6 +5,7 @@ Run in Docker: gunicorn app:app
 """
 import logging
 import os
+import re
 import shutil
 import tempfile
 import uuid
@@ -114,7 +115,8 @@ def friendly_error(exc):
         return "This video is private or unavailable."
     if "ffmpeg" in msg.lower():
         return "Server is missing ffmpeg, so this format cannot be created."
-    return "Could not process this video. Please try another link."
+    detail = re.sub(r"\x1b\[[0-9;]*m", "", msg).replace("ERROR:", "").strip()
+    return f"Could not process this video. Details: {detail[:250]}"
 
 
 @app.after_request
