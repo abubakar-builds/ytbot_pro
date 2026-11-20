@@ -3,6 +3,7 @@
 Run locally:   python app.py
 Run in Docker: gunicorn app:app
 """
+import base64
 import logging
 import os
 import re
@@ -86,13 +87,27 @@ def build_format(quality):
 
 
 def cookie_file():
-    """Optional: paste a Netscape cookies.txt into the YT_COOKIES env var.
-    Helps when YouTube blocks datacenter IPs. Never commit cookies to Git."""
-    content = os.environ.get("YT_COOKIES")
+    """Optional cookies for YouTube bot checks. Never commit cookies to Git.
+
+    Preferred: YT_COOKIES_B64 = base64 of your cookies.txt (keeps tabs/newlines intact).
+    Also supported: YT_COOKIES = raw cookies.txt contents.
+    """
+    raw = os.environ.get("YT_COOKIES_B64")
+    if raw:
+        try:
+            content = base64.b64decode(raw.strip()).decode("utf-8")
+        except Exception:
+            log.warning("YT_COOKIES_B64 is not valid base64; ignoring cookies")
+            return None
+    else:
+        content = os.environ.get("YT_COOKIES")
     if not content:
         return None
+    content = content.replace("\r\n", "\n").replace("\\n", "\n").strip()
+    if not content.startswith("# Netscape HTTP Cookie File"):
+        content = "# Netscape HTTP Cookie File\n" + content
     path = WORK_DIR / "cookies.txt"
-    path.write_text(content)
+    path.write_text(content + "\n")
     os.chmod(path, 0o600)
     return str(path)
 
