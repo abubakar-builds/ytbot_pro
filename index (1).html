@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YTBOT - Free YouTube Downloader - 1080p, 4K</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #09090b;
+            --bg-card: #141419;
+            --bg-input: #1c1c24;
+            --border: #272732;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --gradient: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            --gradient-hover: linear-gradient(135deg, #db2777 0%, #7c3aed 100%);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* --- Navigation --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: none;
+            gap: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .nav-links a:hover { color: var(--text-main); }
+
+        @media (min-width: 900px) {
+            .nav-links { display: flex; }
+        }
+
+        /* Language Selector */
+        .lang-selector {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .lang-selector:hover, .lang-selector:focus {
+            border-color: #8b5cf6;
+        }
+
+        .lang-selector option {
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 span {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+
+        /* --- Input Area --- */
+        .input-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-container:focus-within {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .input-icon {
+            padding: 0 15px;
+            color: var(--text-muted);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 16px;
+            padding: 15px 0;
+            outline: none;
+        }
+
+        .btn-main {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-main:hover:not(:disabled) {
+            background: var(--gradient-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-main:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* --- Dynamic App UI (Hidden Initially) --- */
+        .app-ui {
+            max-width: 800px;
+            margin: 0 auto 50px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .video-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .video-info img {
+            width: 160px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .video-details h3 { font-size: 16px; margin-bottom: 6px; }
+        .video-details p { font-size: 14px; color: var(--text-muted); }
+
+        .select-group { margin-bottom: 20px; }
+
+        select.format-select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        select.format-select:focus { border-color: #8b5cf6; }
+
+        .progress-section { margin-top: 20px; }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .progress-track {
+            background: #272732;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gradient);
+            transition: width 0.3s;
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+        }
+
+        .status-msg {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .msg-success { color: var(--success); }
+        .msg-error { color: var(--error); }
+        .msg-processing { color: #8b5cf6; }
+
+        /* --- Global Sections --- */
+        section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-tag {
+            color: #d946ef;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .section-header h2 { font-size: 32px; font-weight: 800; }
+        .section-header p { color: var(--text-muted); margin-top: 10px; }
+
+        /* --- Grid Cards --- */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); border-color: #3b3b4a; }
+
+        .step-num {
+            background: rgba(139, 92, 246, 0.1);
+            color: #a78bfa;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 700; font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .card h4 { font-size: 18px; margin-bottom: 10px; }
+        .card p { font-size: 14px; color: var(--text-muted); }
+
+        .icon-box {
+            background: var(--bg-input);
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* --- FAQ Section --- */
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-answer {
+            padding: 0 20px 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+            display: none;
+        }
+        .faq-item.active .faq-answer { display: block; }
+        .faq-item.active .faq-question { color: #d946ef; }
+
+        /* --- Footer --- */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 60px 20px 30px;
+            background: var(--bg-main);
+        }
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+        }
+        .footer-col h5 { font-size: 16px; margin-bottom: 20px; }
+        .footer-col a { display: block; color: var(--text-muted); margin-bottom: 12px; font-size: 14px; }
+        .footer-col a:hover { color: var(--text-main); }
+        .footer-bottom {
+            max-width: 1200px; margin: 40px auto 0; padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted); font-size: 14px; display: flex; justify-content: space-between;
+        }
+        @media (max-width: 768px) {
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="logo">
+            <!-- YouTube Logo SVG -->
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M22.535 6.853C22.275 5.879 21.513 5.117 20.539 4.858C18.769 4.383 12 4.383 12 4.383C12 4.383 5.231 4.383 3.461 4.858C2.487 5.117 1.725 5.879 1.465 6.853C1 8.623 1 12 1 12C1 12 1 15.377 1.465 17.147C1.725 18.121 2.487 18.883 3.461 19.142C5.231 19.617 12 19.617 12 19.617C12 19.617 18.769 19.617 20.539 19.142C21.513 18.883 22.275 18.121 22.535 17.147C23 15.377 23 12 23 12C23 12 23 8.623 22.535 6.853ZM9.545 15.568V8.432L15.818 12L9.545 15.568Z" fill="#FF0000"/>
+            </svg>
+            YTBOT
+        </div>
+        <div class="nav-links">
+            <a href="#" style="color: white; border-bottom: 2px solid #ec4899; padding-bottom: 5px;" data-i18n="nav_home">Home</a>
+            <a href="#how-it-works" data-i18n="nav_how">How it Works</a>
+            <a href="#formats" data-i18n="nav_mp4">YouTube to MP4</a>
+            <a href="#faq" data-i18n="nav_faq">FAQ</a>
+        </div>
+        
+        <!-- Language Selector -->
+        <select class="lang-selector" id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="zh">繁體中文</option>
+            <option value="ru">Русский</option>
+            <option value="ar">العربية</option>
+            <option value="tr">Türkçe</option>
+            <option value="pl">Polski</option>
+            <option value="fr">Français</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="id">Indonesian</option>
+        </select>
+    </nav>
+
+    <!-- HERO & DOWNLOADER -->
+    <header class="hero">
+        <h1 data-i18n="hero_title">Free <span>YouTube</span> Video<br>Downloader - 1080p, 4K</h1>
+        <p data-i18n="hero_subtitle">Paste a YouTube link to save MP4 video, MP3 audio, thumbnails, or available HD and 4K quality from one browser page.</p>
+
+        <div class="input-container">
+            <div class="input-icon">🔗</div>
+            <input type="text" id="url-input" placeholder="Paste a YouTube video link here" data-i18n="input_placeholder">
+            <button id="analyze-btn" class="btn-main" onclick="analyzeVideo()">
+                <span data-i18n="btn_download">Download</span> <span>→</span>
+            </button>
+        </div>
+
+        <div class="badges">
+            <div class="badge">⚡ <span data-i18n="badge_mp4">MP4 | MP3</span></div>
+            <div class="badge">🌐 <span data-i18n="badge_free">Free online</span></div>
+            <div class="badge">🛡️ <span data-i18n="badge_install">No installation</span></div>
+        </div>
+    </header>
+
+    <!-- DYNAMIC APP UI (Hidden until URL is analyzed) -->
+    <div class="app-ui" id="app-ui">
+        <div class="video-info">
+            <img id="thumb" src="" alt="Thumbnail">
+            <div class="video-details">
+                <h3 id="v-title">Title loading...</h3>
+                <p id="v-author">Author</p>
+            </div>
+        </div>
+
+        <div class="select-group" id="select-wrapper" style="display: none;">
+            <select id="format-select" class="format-select"></select>
+        </div>
+
+        <button id="download-btn" class="btn-main" style="width: 100%; justify-content: center; display: none;" onclick="startDownload()">
+            <span data-i18n="btn_start_dl">Start Download</span>
+        </button>
+
+        <div class="progress-section" id="progress-container" style="display: none;">
+            <div class="progress-header">
+                <span id="progress-status">Initializing...</span>
+                <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-track">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div id="message-area" class="status-msg"></div>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" style="background: #0c0c10; max-width: 100%; border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <span class="section-tag" data-i18n="how_tag">How it works</span>
+            <h2 data-i18n="how_title">Download YouTube videos in three simple steps</h2>
+            <p data-i18n="how_subtitle">Copy, paste, and choose the file you want to save.</p>
+        </div>
+        <div class="grid-3" style="max-width: 1200px; margin: 0 auto;">
+            <div class="card">
+                <div class="step-num">01</div>
+                <h4 data-i18n="step1_title">Copy the video link</h4>
+                <p data-i18n="step1_desc">Open YouTube and copy the video URL from the share menu or your browser address bar.</p>
+            </div>
+            <div class="card">
+                <div class="step-num">02</div>
+                <h4 data-i18n="step2_title">Paste it into YTBOT</h4>
+                <p data-i18n="step2_desc">Drop the link into the download box. No account, browser extension, or software installation is needed.</p>
+            </div>
+            <div class="card">
+                <div class="step-num">03</div>
+                <h4 data-i18n="step3_title">Choose what to save</h4>
+                <p data-i18n="step3_desc">Pick MP4, MP3, subtitles, a thumbnail, or an available HD quality, then download the file you actually need.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" style="max-width: 800px;">
+        <div class="section-header">
+            <span class="section-tag" data-i18n="faq_tag">FAQ</span>
+            <h2 data-i18n="faq_title">YouTube downloader questions</h2>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)"> <span data-i18n="faq_q1">Is YTBOT free to use?</span> <span>▼</span></div>
+            <div class="faq-answer" data-i18n="faq_a1">Yes. YTBOT is free to use, with no daily download count limit for the normal browser download flow. You can paste links, check available formats, and download without creating an account.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)"> <span data-i18n="faq_q2">Why do some 4K or 2K YouTube downloads have no sound?</span> <span>▼</span></div>
+            <div class="faq-answer" data-i18n="faq_a2">YouTube often stores high-resolution video and audio as separate streams. Basic downloaders might save only the video track. Our backend automatically uses FFmpeg to merge them into one playable MP4.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)"> <span data-i18n="faq_q3">Can YTBOT convert YouTube to MP3?</span> <span>▼</span></div>
+            <div class="faq-answer" data-i18n="faq_a3">Yes. You can choose the "Audio Only (M4A/MP3)" option from the dropdown, and the system will extract the audio and convert it to an MP3 file using FFmpeg.</div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="logo" style="margin-bottom: 20px;">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M22.535 6.853C22.275 5.879 21.513 5.117 20.539 4.858C18.769 4.383 12 4.383 12 4.383C12 4.383 5.231 4.383 3.461 4.858C2.487 5.117 1.725 5.879 1.465 6.853C1 8.623 1 12 1 12C1 12 1 15.377 1.465 17.147C1.725 18.121 2.487 18.883 3.461 19.142C5.231 19.617 12 19.617 12 19.617C12 19.617 18.769 19.617 20.539 19.142C21.513 18.883 22.275 18.121 22.535 17.147C23 15.377 23 12 23 12C23 12 23 8.623 22.535 6.853ZM9.545 15.568V8.432L15.818 12L9.545 15.568Z" fill="#FF0000"/>
+                    </svg>
+                    YTBOT
+                </div>
+                <p style="color: var(--text-muted); font-size: 14px;" data-i18n="footer_desc">YTBOT is not affiliated with any third-party platform or copyright owner. Please download only content you own the rights to.</p>
+            </div>
+            <div class="footer-col">
+                <h5 data-i18n="footer_how">How to Use</h5>
+                <a href="#" data-i18n="footer_terms">Terms of Service</a>
+                <a href="#" data-i18n="footer_disclaimer">Disclaimer</a>
+            </div>
+            <div class="footer-col">
+                <h5 data-i18n="footer_faq">FAQ</h5>
+                <a href="#" data-i18n="footer_privacy">Privacy Policy</a>
+                <a href="#" data-i18n="footer_about">About Us</a>
+            </div>
+            <div class="footer-col">
+                <h5 data-i18n="footer_blog">Blog</h5>
+                <a href="#" data-i18n="footer_dmca">DMCA</a>
+                <a href="#" data-i18n="footer_contact">Contact Us</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span data-i18n="footer_rights">© 2026 YTBOT. All rights reserved.</span>
+            <span data-i18n="footer_made">Made with ❤️</span>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script>
+        // --- Translation Dictionary ---
+        const translations = {
+            en: {
+                nav_home: "Home", nav_how: "How it Works", nav_mp4: "YouTube to MP4", nav_faq: "FAQ",
+                hero_title: 'Free <span>YouTube</span> Video<br>Downloader - 1080p, 4K',
+                hero_subtitle: "Paste a YouTube link to save MP4 video, MP3 audio, thumbnails, or available HD and 4K quality from one browser page.",
+                input_placeholder: "Paste a YouTube video link here",
+                btn_download: "Download", btn_start_dl: "Start Download",
+                badge_mp4: "MP4 | MP3", badge_free: "Free online", badge_install: "No installation",
+                how_tag: "How it works", how_title: "Download YouTube videos in three simple steps", how_subtitle: "Copy, paste, and choose the file you want to save.",
+                step1_title: "Copy the video link", step1_desc: "Open YouTube and copy the video URL from the share menu or your browser address bar.",
+                step2_title: "Paste it into YTBOT", step2_desc: "Drop the link into the download box. No account, browser extension, or software installation is needed.",
+                step3_title: "Choose what to save", step3_desc: "Pick MP4, MP3, subtitles, a thumbnail, or an available HD quality, then download the file you actually need.",
+                faq_tag: "FAQ", faq_title: "YouTube downloader questions",
+                faq_q1: "Is YTBOT free to use?", faq_a1: "Yes. YTBOT is free to use, with no daily download count limit.",
+                faq_q2: "Why do some 4K or 2K YouTube downloads have no sound?", faq_a2: "YouTube often stores high-resolution video and audio as separate streams. Our backend automatically uses FFmpeg to merge them.",
+                faq_q3: "Can YTBOT convert YouTube to MP3?", faq_a3: "Yes. You can choose the Audio Only option from the dropdown, and the system will extract the audio.",
+                footer_desc: "YTBOT is not affiliated with any third-party platform or copyright owner. Please download only content you own the rights to.",
+                footer_how: "How to Use", footer_terms: "Terms of Service", footer_disclaimer: "Disclaimer",
+                footer_faq: "FAQ", footer_privacy: "Privacy Policy", footer_about: "About Us",
+                footer_blog: "Blog", footer_dmca: "DMCA", footer_contact: "Contact Us",
+                footer_rights: "© 2026 YTBOT. All rights reserved.", footer_made: "Made with ❤️"
+            },
+            zh: {
+                nav_home: "首页", nav_how: "如何使用", nav_mp4: "YouTube 转 MP4", nav_faq: "常见问题",
+                hero_title: '免费 <span>YouTube</span> 视频<br>下载器 - 1080p, 4K',
+                hero_subtitle: "粘贴 YouTube 链接以保存 MP4 视频、MP3 音频、缩略图或可用的 HD 和 4K 画质。",
+                input_placeholder: "在此粘贴 YouTube 视频链接",
+                btn_download: "下载", btn_start_dl: "开始下载",
+                badge_mp4: "MP4 | MP3", badge_free: "免费在线", badge_install: "无需安装",
+                how_tag: "如何使用", how_title: "三步下载 YouTube 视频", how_subtitle: "复制、粘贴并选择您要保存的文件。",
+                step1_title: "复制视频链接", step1_desc: "打开 YouTube 并从分享菜单或浏览器地址栏复制视频 URL。",
+                step2_title: "粘贴到 YTBOT", step2_desc: "将链接放入下载框。无需帐户、扩展程序或软件。",
+                step3_title: "选择保存内容", step3_desc: "选择 MP4、MP3、字幕、缩略图或可用的 HD 画质。",
+                faq_tag: "常见问题", faq_title: "YouTube 下载器问题",
+                faq_q1: "YTBOT 免费吗？", faq_a1: "是的。YTBOT 完全免费使用。",
+                faq_q2: "为什么有些 4K 下载没有声音？", faq_a2: "YouTube 通常将高清视频和音频分开存储。我们的后端会自动使用 FFmpeg 将它们合并。",
+                faq_q3: "YTBOT 可以将 YouTube 转换为 MP3 吗？", faq_a3: "是的。从下拉菜单中选择“仅音频”选项即可提取音频。",
+                footer_desc: "YTBOT 不隶属于任何第三方平台。请仅下载您拥有版权的内容。",
+                footer_how: "如何使用", footer_terms: "服务条款", footer_disclaimer: "免责声明",
+                footer_faq: "常见问题", footer_privacy: "隐私政策", footer_about: "关于我们",
+                footer_blog: "博客", footer_dmca: "DMCA", footer_contact: "联系我们",
+                footer_rights: "© 2026 YTBOT. 保留所有权利。", footer_made: "用 ❤️ 制作"
+            },
+            ru: {
+                nav_home: "Главная", nav_how: "Как это работает", nav_mp4: "YouTube в MP4", nav_faq: "FAQ",
+                hero_title: 'Бесплатный <span>YouTube</span> Видео<br>Загрузчик - 1080p, 4K',
+                hero_subtitle: "Вставьте ссылку на YouTube, чтобы сохранить видео MP4, аудио MP3, миниатюры или доступное качество HD и 4K.",
+                input_placeholder: "Вставьте ссылку на видео YouTube здесь",
+                btn_download: "Скачать", btn_start_dl: "Начать загрузку",
+                badge_mp4: "MP4 | MP3", badge_free: "Бесплатно онлайн", badge_install: "Без установки",
+                how_tag: "Как это работает", how_title: "Скачивайте видео с YouTube в три простых шага", how_subtitle: "Скопируйте, вставьте и выберите файл.",
+                step1_title: "Скопируйте ссылку", step1_desc: "Откройте YouTube и скопируйте URL видео из меню поделиться.",
+                step2_title: "Вставьте в YTBOT", step2_desc: "Вставьте ссылку в поле загрузки. Аккаунт не требуется.",
+                step3_title: "Выберите формат", step3_desc: "Выберите MP4, MP3, субтитры или доступное качество HD.",
+                faq_tag: "FAQ", faq_title: "Вопросы о загрузчике YouTube",
+                faq_q1: "YTBOT бесплатен?", faq_a1: "Да. YTBOT бесплатен и не имеет ограничений на количество загрузок.",
+                faq_q2: "Почему в некоторых 4K видео нет звука?", faq_a2: "YouTube хранит видео и аудио отдельно. Наш сервер использует FFmpeg для их объединения.",
+                faq_q3: "Можно ли конвертировать в MP3?", faq_a3: "Да. Выберите опцию «Только аудио», чтобы извлечь звук.",
+                footer_desc: "YTBOT не связан с YouTube. Скачивайте только то, на что у вас есть права.",
+                footer_how: "Инструкция", footer_terms: "Условия", footer_disclaimer: "Отказ от ответственности",
+                footer_faq: "FAQ", footer_privacy: "Конфиденциальность", footer_about: "О нас",
+                footer_blog: "Блог", footer_dmca: "DMCA", footer_contact: "Контакты",
+                footer_rights: "© 2026 YTBOT. Все права защищены.", footer_made: "Сделано с ❤️"
+            },
+            ar: {
+                nav_home: "الرئيسية", nav_how: "كيف يعمل", nav_mp4: "يوتيوب إلى MP4", nav_faq: "الأسئلة الشائعة",
+                hero_title: 'محمل فيديو <span>يوتيوب</span> مجاني<br>- 1080p, 4K',
+                hero_subtitle: "الصق رابط يوتيوب لحفظ فيديو MP4، صوت MP3، أو جودة HD و 4K المتاحة.",
+                input_placeholder: "الصق رابط فيديو يوتيوب هنا",
+                btn_download: "تحميل", btn_start_dl: "بدء التحميل",
+                badge_mp4: "MP4 | MP3", badge_free: "مجاني", badge_install: "بدون تثبيت",
+                how_tag: "كيف يعمل", how_title: "قم بتنزيل فيديوهات يوتيوب في ثلاث خطوات", how_subtitle: "انسخ، الصق، واختر الملف.",
+                step1_title: "انسخ الرابط", step1_desc: "افتح يوتيوب وانسخ رابط الفيديو.",
+                step2_title: "الصقه في YTBOT", step2_desc: "ضع الرابط في مربع التحميل. لا حاجة لحساب.",
+                step3_title: "اختر ماذا تحفظ", step3_desc: "اختر MP4، MP3، أو جودة HD المتاحة.",
+                faq_tag: "الأسئلة الشائعة", faq_title: "أسئلة محمل يوتيوب",
+                faq_q1: "هل YTBOT مجاني؟", faq_a1: "نعم. YTBOT مجاني تمامًا للاستخدام.",
+                faq_q2: "لماذا تخلو بعض مقاطع 4K من الصوت؟", faq_a2: "غالبًا ما يخزن يوتيوب الفيديو والصوت بشكل منفصل. يستخدم نظامنا FFmpeg لدمجها.",
+                faq_q3: "هل يمكن تحويل يوتيوب إلى MP3؟", faq_a3: "نعم. اختر خيار الصوت فقط لاستخراج الصوت.",
+                footer_desc: "YTBOT غير تابع لأي منصة. يرجى تنزيل المحتوى الذي تمتلك حقوقه فقط.",
+                footer_how: "كيفية الاستخدام", footer_terms: "شروط الخدمة", footer_disclaimer: "إخلاء المسؤولية",
+                footer_faq: "الأسئلة الشائعة", footer_privacy: "سياسة الخصوصية", footer_about: "معلومات عنا",
+                footer_blog: "مدونة", footer_dmca: "DMCA", footer_contact: "اتصل بنا",
+                footer_rights: "© 2026 YTBOT. جميع الحقوق محفوظة.", footer_made: "صنع بـ ❤️"
+            },
+            tr: {
+                nav_home: "Ana Sayfa", nav_how: "Nasıl Çalışır", nav_mp4: "YouTube'dan MP4'e", nav_faq: "SSS",
+                hero_title: 'Ücretsiz <span>YouTube</span> Video<br>İndirici - 1080p, 4K',
+                hero_subtitle: "MP4 video, MP3 ses veya mevcut HD ve 4K kalitesini kaydetmek için bir YouTube bağlantısı yapıştırın.",
+                input_placeholder: "YouTube video bağlantısını buraya yapıştırın",
+                btn_download: "İndir", btn_start_dl: "İndirmeyi Başlat",
+                badge_mp4: "MP4 | MP3", badge_free: "Ücretsiz", badge_install: "Kurulum Yok",
+                how_tag: "Nasıl Çalışır", how_title: "YouTube videolarını üç basit adımda indirin", how_subtitle: "Kopyalayın, yapıştırın ve dosyayı seçin.",
+                step1_title: "Bağlantıyı kopyalayın", step1_desc: "YouTube'u açın ve video URL'sini kopyalayın.",
+                step2_title: "YTBOT'a yapıştırın", step2_desc: "Bağlantıyı indirme kutusuna bırakın. Hesap gerekmez.",
+                step3_title: "Ne kaydedeceğinizi seçin", step3_desc: "MP4, MP3, altyazı veya mevcut HD kalitesini seçin.",
+                faq_tag: "SSS", faq_title: "YouTube indirici soruları",
+                faq_q1: "YTBOT ücretsiz mi?", faq_a1: "Evet. YTBOT tamamen ücretsizdir.",
+                faq_q2: "Neden bazı 4K indirmelerde ses yok?", faq_a2: "YouTube genellikle videoyu ve sesi ayrı saklar. Arka ucimiz bunları birleştirmek için FFmpeg kullanır.",
+                faq_q3: "YouTube MP3'e dönüştürülebilir mi?", faq_a3: "Evet. Ses çıkarmak için Sadece Ses seçeneğini seçin.",
+                footer_desc: "YTBOT hiçbir platforma bağlı değildir. Lütfen yalnızca haklarına sahip olduğunuz içeriği indirin.",
+                footer_how: "Nasıl Kullanılır", footer_terms: "Hizmet Şartları", footer_disclaimer: "Sorumluluk Reddi",
+                footer_faq: "SSS", footer_privacy: "Gizlilik Politikası", footer_about: "Hakkımızda",
+                footer_blog: "Blog", footer_dmca: "DMCA", footer_contact: "Bize Ulaşın",
+                footer_rights: "© 2026 YTBOT. Tüm hakları saklıdır.", footer_made: "❤️ ile yapıldı"
+            },
+            pl: {
+                nav_home: "Strona główna", nav_how: "Jak to działa", nav_mp4: "YouTube na MP4", nav_faq: "FAQ",
+                hero_title: 'Darmowy <span>YouTube</span> Pobieracz<br>Wideo - 1080p, 4K',
+                hero_subtitle: "Wklej link z YouTube, aby zapisać wideo MP4, dźwięk MP3, miniatury lub dostępną jakość HD i 4K.",
+                input_placeholder: "Wklej tutaj link do filmu z YouTube",
+                btn_download: "Pobierz", btn_start_dl: "Rozpocznij pobieranie",
+                badge_mp4: "MP4 | MP3", badge_free: "Za darmo", badge_install: "Bez instalacji",
+                how_tag: "Jak to działa", how_title: "Pobieraj filmy z YouTube w trzech krokach", how_subtitle: "Skopiuj, wklej i wybierz plik.",
+                step1_title: "Skopiuj link", step1_desc: "Otwórz YouTube i skopiuj adres URL filmu.",
+                step2_title: "Wklej do YTBOT", step2_desc: "Upuść link w polu pobierania. Konto nie jest wymagane.",
+                step3_title: "Wybierz co zapisać", step3_desc: "Wybierz MP4, MP3, napisy lub dostępną jakość HD.",
+                faq_tag: "FAQ", faq_title: "Pytania o pobieranie z YouTube",
+                faq_q1: "Czy YTBOT jest darmowy?", faq_a1: "Tak. YTBOT jest całkowicie darmowy.",
+                faq_q2: "Dlaczego niektóre pliki 4K nie mają dźwięku?", faq_a2: "YouTube często przechowuje wideo i dźwięk osobno. Nasz backend używa FFmpeg do ich połączenia.",
+                faq_q3: "Czy można konwertować na MP3?", faq_a3: "Tak. Wybierz opcję Tylko audio, aby wyodrębnić dźwięk.",
+                footer_desc: "YTBOT nie jest powiązany z żadną platformą. Pobieraj tylko treści, do których masz prawa.",
+                footer_how: "Jak używać", footer_terms: "Warunki usługi", footer_disclaimer: "Zastrzeżenia",
+                footer_faq: "FAQ", footer_privacy: "Polityka prywatności", footer_about: "O nas",
+                footer_blog: "Blog", footer_dmca: "DMCA", footer_contact: "Kontakt",
+                footer_rights: "© 2026 YTBOT. Wszelkie prawa zastrzeżone.", footer_made: "Zrobione z ❤️"
+            }
+        };
+
+        // --- Language Logic ---
+        function changeLanguage(lang) {
+            // Save preference
+            localStorage.setItem('ytbot_lang', lang);
+            
+            const dict = translations[lang] || translations['en'];
+
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    if (el.tagName === 'INPUT') {
+                        el.placeholder = dict[key];
+                    } else if (key === 'hero_title') {
+                        // Special handling for HTML content in title
+                        el.innerHTML = dict[key];
+                    } else {
+                        el.innerText = dict[key];
+                    }
+                }
+            });
+
+            // Adjust Direction for Arabic
+            if (lang === 'ar') {
+                document.body.style.direction = 'rtl';
+                document.querySelector('nav').style.direction = 'rtl';
+            } else {
+                document.body.style.direction = 'ltr';
+                document.querySelector('nav').style.direction = 'ltr';
+            }
+        }
+
+        // Load saved language on startup
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('ytbot_lang') || 'en';
+            document.getElementById('languageSelect').value = savedLang;
+            changeLanguage(savedLang);
+        });
+
+        // --- FAQ Accordion ---
+        function toggleFaq(el) {
+            const item = el.parentElement;
+            const isActive = item.classList.contains('active');
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+            if (!isActive) item.classList.add('active');
+        }
+
+        // --- Download Logic ---
+        // Leave empty when the API is on the same domain.
+        // If the API is hosted elsewhere (e.g. Render): const API_BASE = 'https://your-api.onrender.com';
+        const API_BASE = (window.API_BASE || '').replace(/\/$/, '');
+
+        let currentUrl = '';
+        const $ = (id) => document.getElementById(id);
+
+        async function readError(response, fallback) {
+            try {
+                const data = await response.json();
+                return data.error || fallback;
+            } catch (_) {
+                if (response.status === 413) return 'File is too large for this server.';
+                if (response.status === 504) return 'The server timed out. Try a lower quality.';
+                return fallback;
+            }
+        }
+
+        async function analyzeVideo() {
+            const urlInput = $('url-input').value.trim();
+            if (!urlInput) return alert("Please paste a valid YouTube URL");
+
+            currentUrl = urlInput;
+            const btn = $('analyze-btn');
+            const originalBtnText = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = 'Analyzing...';
+
+            $('app-ui').style.display = 'block';
+            $('thumb').style.display = 'none';
+            $('v-title').innerText = 'Fetching video info...';
+            $('v-author').innerText = '';
+            $('select-wrapper').style.display = 'none';
+            $('download-btn').style.display = 'none';
+            $('progress-container').style.display = 'none';
+            $('message-area').innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/info`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: currentUrl })
+                });
+                if (!response.ok) throw new Error(await readError(response, 'Could not load video.'));
+                const data = await response.json();
+
+                if (data.thumbnail) {
+                    $('thumb').src = data.thumbnail;
+                    $('thumb').style.display = 'block';
+                }
+                $('v-title').innerText = data.title || 'Untitled';
+                $('v-author').innerText = data.uploader ? `By: ${data.uploader}` : '';
+
+                const select = $('format-select');
+                select.innerHTML = '';
+                data.formats.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = f.label;
+                    select.appendChild(opt);
+                });
+
+                $('select-wrapper').style.display = 'block';
+                $('download-btn').style.display = 'flex';
+            } catch (error) {
+                $('v-title').innerText = 'Error loading video';
+                $('v-author').innerText = error.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+                changeLanguage(localStorage.getItem('ytbot_lang') || 'en'); // Re-apply translation
+            }
+        }
+
+        async function startDownload() {
+            const quality = $('format-select').value;
+
+            $('select-wrapper').style.display = 'none';
+            $('download-btn').style.display = 'none';
+            $('progress-container').style.display = 'block';
+            $('message-area').innerHTML = '';
+
+            const fill = $('progress-fill');
+            const percentText = $('progress-percent');
+            const statusText = $('progress-status');
+
+            fill.style.width = '0%';
+            percentText.innerText = '0%';
+            statusText.innerText = 'Preparing file on the server...';
+
+            // The server downloads/merges first, so show a slow "working" animation until it responds.
+            let fake = 0;
+            const ticker = setInterval(() => {
+                fake = Math.min(fake + (90 - fake) * 0.03, 90);
+                fill.style.width = `${fake}%`;
+                percentText.innerText = `${Math.round(fake)}%`;
+            }, 500);
+
+            try {
+                const url = `${API_BASE}/api/download?url=${encodeURIComponent(currentUrl)}&quality=${encodeURIComponent(quality)}`;
+                const response = await fetch(url);
+                clearInterval(ticker);
+                if (!response.ok) throw new Error(await readError(response, 'Download failed.'));
+
+                // Real progress while the file is sent to the browser
+                statusText.innerText = 'Downloading...';
+                const total = parseInt(response.headers.get('Content-Length') || '0', 10);
+                const reader = response.body.getReader();
+                const chunks = [];
+                let received = 0;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    received += value.length;
+                    if (total) {
+                        const pct = (received / total) * 100;
+                        fill.style.width = `${pct}%`;
+                        percentText.innerText = `${pct.toFixed(1)}%`;
+                    }
+                }
+
+                const disposition = response.headers.get('Content-Disposition') || '';
+                const star = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+                const plain = disposition.match(/filename="?([^";]+)"?/i);
+                const filename = star ? decodeURIComponent(star[1]) : (plain ? plain[1] : 'download');
+
+                const blobUrl = URL.createObjectURL(new Blob(chunks));
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+
+                fill.style.width = '100%';
+                percentText.innerText = '100%';
+                statusText.innerText = 'Finished';
+                $('message-area').innerHTML = `<span class="msg-success">✓ Download complete! Check your downloads folder.</span>`;
+            } catch (error) {
+                clearInterval(ticker);
+                statusText.innerText = 'Failed';
+                $('message-area').innerHTML = '';
+                const span = document.createElement('span');
+                span.className = 'msg-error';
+                span.textContent = `❌ ${error.message}`;
+                $('message-area').appendChild(span);
+            } finally {
+                $('select-wrapper').style.display = 'block';
+                $('download-btn').style.display = 'flex';
+            }
+        }
+    </script>
+</body>
+</html>
